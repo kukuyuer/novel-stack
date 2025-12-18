@@ -1,0 +1,37 @@
+{
+  "name": "app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@tiptap/extension-character-count": "^3.13.0",
+    "@tiptap/extension-highlight": "^3.13.0",
+    "@tiptap/extension-placeholder": "^3.13.0",
+    "@tiptap/extension-typography": "^3.13.0",
+    "@tiptap/react": "^3.13.0",
+    "@tiptap/starter-kit": "^3.13.0",
+    "autoprefixer": "^10.4.19",
+    "axios": "^1.13.2",
+    "lucide-react": "^0.561.0",
+    "next": "16.0.10",
+    "postcss": "^8.4.38",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-force-graph-2d": "^1.29.0",
+    "tailwindcss": "^3.4.17"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.13",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.10",
+    "typescript": "^5"
+  }
+}

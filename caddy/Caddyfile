@@ -1,0 +1,22 @@
+# 1. 全局配置块 (必须在最上面)
+{
+    auto_https off
+}
+
+# 2. 站点配置块
+:80 {
+    # API 请求转发
+    handle /api/* {
+        reverse_proxy api:4000
+    }
+
+    # 前端页面转发
+    handle {
+        reverse_proxy web:3000
+    }
+
+    # 日志配置
+    log {
+        output file /var/log/caddy/access.log
+    }
+}

@@ -1,0 +1,179 @@
+generator client {
+  provider      = "prisma-client-js"
+  // ✅ 新增 binaryTargets，同时支持 1.1.x 和 3.0.x 以及本地环境
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ai_providers {
+  id        Int      @id @default(autoincrement())
+  user_id   String?  @db.Uuid
+  name      String   @db.VarChar(50)
+  provider  String   @db.VarChar(50)
+  base_url  String?  @db.VarChar(255)
+  api_key   String?  @db.VarChar(255)
+  models    Json?    @default("[]")
+  is_active Boolean? @default(true)
+  users     users?   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model arc_nodes {
+  id                String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  arc_id            String?          @db.Uuid
+  linked_event_id   String?          @db.Uuid
+  linked_chapter_id String?          @db.Uuid
+  note              String?
+  order_index       Int?
+  story_arcs        story_arcs?      @relation(fields: [arc_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chapters          chapters?        @relation(fields: [linked_chapter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  timeline_events   timeline_events? @relation(fields: [linked_event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model books {
+  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id         String?           @db.Uuid
+  title           String            @db.VarChar(255)
+  summary         String?
+  cover_url       String?           @db.VarChar(255)
+  status          String?           @default("ongoing") @db.VarChar(20)
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  users           users?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  entities        entities[]
+  eras            eras[]
+  relationships   relationships[]
+  story_arcs      story_arcs[]
+  timeline_events timeline_events[]
+  volumes         volumes[]
+}
+
+model chapters {
+  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  volume_id       String?           @db.Uuid
+  title           String            @db.VarChar(255)
+  content         String?
+  content_state   Json?
+  word_count      Int?              @default(0)
+  order_index     Int
+  status          String?           @default("draft") @db.VarChar(20)
+  updated_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  arc_nodes       arc_nodes[]
+  volumes         volumes?          @relation(fields: [volume_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  timeline_events timeline_events[]
+}
+
+model entities {
+  id                                                String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  book_id                                           String?              @db.Uuid
+  name                                              String               @db.VarChar(100)
+  type                                              String               @db.VarChar(50)
+  avatar_url                                        String?              @db.VarChar(255)
+  description                                       String?
+  tags                                              String[]             @db.VarChar
+  attributes                                        Json?
+  is_archived                                       Boolean?             @default(false)
+  books                                             books?               @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  event_participants                                event_participants[]
+  relationships_relationships_entity_a_idToentities relationships[]      @relation("relationships_entity_a_idToentities")
+  relationships_relationships_entity_b_idToentities relationships[]      @relation("relationships_entity_b_idToentities")
+}
+
+model eras {
+  id                  String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  book_id             String?           @db.Uuid
+  name                String            @db.VarChar(100)
+  order_index         Int
+  start_absolute_tick BigInt
+  description         String?
+  books               books?            @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  timeline_events     timeline_events[]
+}
+
+model event_participants {
+  id                 String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  event_id           String?          @db.Uuid
+  entity_id          String?          @db.Uuid
+  role               String?          @db.VarChar(50)
+  action_description String?
+  entities           entities?        @relation(fields: [entity_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  timeline_events    timeline_events? @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([event_id, entity_id])
+}
+
+model relationship_snapshots {
+  id               String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  relationship_id  String?          @db.Uuid
+  trigger_event_id String?          @db.Uuid
+  start_tick       BigInt
+  relation_type    String?          @db.VarChar(50)
+  value            Int?
+  label            String?          @db.VarChar(100)
+  created_at       DateTime?        @default(now()) @db.Timestamptz(6)
+  relationships    relationships?   @relation(fields: [relationship_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  timeline_events  timeline_events? @relation(fields: [trigger_event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model relationships {
+  id                                           String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  book_id                                      String?                  @db.Uuid
+  entity_a_id                                  String?                  @db.Uuid
+  entity_b_id                                  String?                  @db.Uuid
+  relationship_snapshots                       relationship_snapshots[]
+  books                                        books?                   @relation(fields: [book_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  entities_relationships_entity_a_idToentities entities?                @relation("relationships_entity_a_idToentities", fields: [entity_a_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  entities_relationships_entity_b_idToentities entities?                @relation("relationships_entity_b_idToentities", fields: [entity_b_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([entity_a_id, entity_b_id])
+}
+
+model story_arcs {
+  id          String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  book_id     String?     @db.Uuid
+  name        String      @db.VarChar(100)
+  color       String?     @db.VarChar(20)
+  status      String?     @default("active") @db.VarChar(20)
+  description String?
+  arc_nodes   arc_nodes[]
+  books       books?      @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model timeline_events {
+  id                     String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  book_id                String?                  @db.Uuid
+  title                  String                   @db.VarChar(255)
+  description            String?
+  era_id                 String?                  @db.Uuid
+  year_in_era            Int?
+  month_in_era           Int?
+  day_in_era             Int?
+  absolute_tick          BigInt
+  related_chapter_id     String?                  @db.Uuid
+  arc_nodes              arc_nodes[]
+  event_participants     event_participants[]
+  relationship_snapshots relationship_snapshots[]
+  books                  books?                   @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  eras                   eras?                    @relation(fields: [era_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  chapters               chapters?                @relation(fields: [related_chapter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id            String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username      String         @db.VarChar(100)
+  password_hash String         @db.VarChar(255)
+  created_at    DateTime?      @default(now()) @db.Timestamptz(6)
+  ai_providers  ai_providers[]
+  books         books[]
+}
+
+model volumes {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  book_id     String?    @db.Uuid
+  title       String     @db.VarChar(255)
+  order_index Int
+  chapters    chapters[]
+  books       books?     @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}

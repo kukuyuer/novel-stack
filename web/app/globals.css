@@ -1,0 +1,18 @@
+/* 1. 引入 Tailwind 的核心样式层 (必须) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. 定义 CSS 变量 (这里我们使用最干净的白色主题) */
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+}
+
+/* 3. 应用到 Body */
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
