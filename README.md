@@ -55,11 +55,11 @@ NovelStack 不仅仅是一个打字工具，它是为构建宏大世界观而生
 
 ![主页](/capimage/主页.png)
 
-![世界观](/capimage/世界观.png)
+![世界观](/capimage/人物.png)
 
 ![时间轴](/capimage/时间轴.png)
 
-![关系网](/capimage/关系网.png)
+![关系网](/capimage/关系网-列表.png)
 
 ![AI配置](/capimage/AI配置.png)
 
