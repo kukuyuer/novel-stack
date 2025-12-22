@@ -1,2 +1,2 @@
 主页
-/capimage/主页.png
+![图片描述](capimage/主页.png）
