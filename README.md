@@ -1,3 +1,4 @@
-主页
-![图片描述](capimagemage/主页.png)
+主页  
+<img src="capimage/主页.png" alt="主页" width="300"/>
+
 
