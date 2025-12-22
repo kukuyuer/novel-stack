@@ -1,19 +1,18 @@
-# --- 依赖包 (不需要上传， npm install 即可生成) ---
 node_modules/
 */node_modules/
-
-# --- 构建产物 (不需要上传) ---
-.next/
-dist/
-build/
-*.tar
-
-# --- 环境变量与密钥 (千万别上传！) ---
+# 环境变量 (绝对不能上传!)
 .env
 .env.local
 .env.production
 
-# --- Docker 数据卷 (这里面是你的数据库实际文件) ---
+# 构建产物
+.next/
+dist/
+build/
+*.tar
+*.gz
+
+# Docker 数据卷 (数据库实际存储位置)
 pgdata/
 redisdata/
 miniodata/
@@ -22,16 +21,10 @@ caddy_data/
 caddy_config/
 grafana_data/
 
-# --- 日志文件 ---
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# 日志
 logs/
 *.log
 
-# --- 系统文件 ---
+# 系统文件
 .DS_Store
 Thumbs.db
-
-# --- 部署打包目录 (里面的 tar 镜像太大) ---
-novel-deploy/images/

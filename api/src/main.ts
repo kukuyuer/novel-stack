@@ -1,23 +1,22 @@
-// api/src/main.ts
+// BigInt 补丁
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { json, urlencoded } from 'express'; // 引入 express 中间件
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 1. 设置全局前缀 /api
-  // 这样 @Controller('books') 就会自动变成 /api/books
   app.setGlobalPrefix('api');
-
-  // 2. 允许跨域 (方便前端开发)
   app.enableCors();
 
-  // 3. 监听 0.0.0.0 (必须显式指定，否则 Docker 外部访问不到)
-  // 同时使用环境变量里的端口，或者默认 4000
+  // 🔥 关键修改：增加请求体大小限制到 50MB
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
+
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');
   

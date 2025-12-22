@@ -7,9 +7,8 @@ export class UploadService implements OnModuleInit {
   private bucketName = 'novel-assets'; // 存储桶名称
 
   constructor() {
-    // 连接到 Docker 网络内部的 minio 容器
     this.minioClient = new Minio.Client({
-      endPoint: 'minio', // docker-compose 服务名
+      endPoint: 'minio',
       port: 9000,
       useSSL: false,
       accessKey: process.env.MINIO_ROOT_USER || 'minio_admin',
@@ -18,11 +17,12 @@ export class UploadService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    // 初始化时检查桶是否存在，不存在则创建
     const exists = await this.minioClient.bucketExists(this.bucketName);
     if (!exists) {
       await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
-      // 设置桶策略为公开只读 (方便前端直接访问图片)
+      
+      // 🔥 关键：设置桶策略为“公开只读”
+      // 这样浏览器才能直接通过 URL 访问图片
       const policy = {
         Version: '2012-10-17',
         Statement: [
@@ -39,8 +39,10 @@ export class UploadService implements OnModuleInit {
   }
 
   async uploadFile(file: Express.Multer.File) {
-    // 生成唯一文件名
-    const filename = `${Date.now()}-${file.originalname}`;
+    // 处理文件名中文乱码问题，并加时间戳防重名
+    // Buffer.from(file.originalname, 'latin1').toString('utf8') 是为了解决 Multer 在某些环境下的中文乱码
+    const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+    const filename = `${Date.now()}-${originalName}`;
     
     await this.minioClient.putObject(
       this.bucketName,
@@ -50,13 +52,9 @@ export class UploadService implements OnModuleInit {
       { 'Content-Type': file.mimetype }
     );
 
-    // 返回可访问的 URL
-    // 注意：这里返回的是前端浏览器能访问的地址
-    // 如果是在本地开发，应该是 localhost:9000/novel-assets/xxx
-    // 但我们在 Docker 里，Caddy 没有代理 9000，所以我们需要用 Caddy 暴露 MinIO
-    // 或者简单点，我们先返回一个相对路径，或者配置 Caddy 代理 /uploads
-    
-    // 简单起见，我们假设 minio 映射到了 localhost:9000
-    return `http://localhost:9000/${this.bucketName}/${filename}`;
+    // 🔥 关键修改：返回相对路径
+    // 浏览器会自动将其解析为 http://你的IP:8080/novel-assets/xxx.jpg
+    // Caddy 会拦截 /novel-assets/ 并转发给 MinIO
+    return `/${this.bucketName}/${filename}`;
   }
 }

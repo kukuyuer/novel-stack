@@ -1,21 +1,24 @@
-# 1. 全局配置块 (必须在最上面)
 {
     auto_https off
 }
 
-# 2. 站点配置块
 :80 {
-    # API 请求转发
+    # 1. API 接口转发
     handle /api/* {
         reverse_proxy api:4000
     }
 
-    # 前端页面转发
+    # 2. 🔥 新增：图片资源转发 (MinIO)
+    # 把访问 /novel-assets/ 的请求转给 minio 容器
+    handle /novel-assets/* {
+        reverse_proxy minio:9000
+    }
+
+    # 3. 前端页面转发
     handle {
         reverse_proxy web:3000
     }
 
-    # 日志配置
     log {
         output file /var/log/caddy/access.log
     }
